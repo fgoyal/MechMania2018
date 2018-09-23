@@ -2,6 +2,8 @@
 """
 Created on Sat Sep 22 13:55:16 2018
 @author: Richard
+@author: Fiza
+@author: Eunice
 """
 
 # keep these three import statements
@@ -96,25 +98,14 @@ for line in fileinput.input():
     
     me = game.get_self()
     opponent = game.get_opponent()
-    a=0.1
-    b=0.1
-    c=0.1
-    d=0.1
-    e=0.1
-    f=0.1
-    g=0.1
-    h=0.1
-
-    if game.get_turn_num() <= 45:
-    # prioritize speed for the first 45 turns
-        a=0
-        b=1
-        c=0
-        d=0
-        e=0
-        f=0
-        g=0
-        h=0
+    a = 10
+    b = 10
+    c = 6
+    d = 4
+    e = 12
+    f = 7
+    g = 9
+    h = 12
 
     if game.get_turn_num() >= 250:
         if me.health <= opponent.health:
@@ -139,10 +130,20 @@ for line in fileinput.input():
     # choose monster with max priority
         maxpriority = mlist.index(max(mlist))
         target = allmonsters[maxpriority]
+        
 
     # get the set of shortest paths to that monster
-        paths = game.shortest_paths(me.location, target.location)
+    # for first 75 turns, go to Paper 3 while alive
+        if me.speed < 5 and game.get_turn_num() <= 75:
+            if (game.get_monster(3).dead == False):
+                paths = game.shortest_paths(me.location, 3)
+            else:
+                paths = game.shortest_paths(me.location, target.location)
+        else:
+            paths = game.shortest_paths(me.location, target.location)
+
         destination_node = paths[random.randint(0, len(paths)-1)][0]
+
     # choose monster with max priority
     else:
         destination_node = me.destination
@@ -155,14 +156,30 @@ for line in fileinput.input():
         elif opponent.stance == "Scissors":
             count_scissors+=1
 
-
+    # initalizes the dictionary
+    thisdict = { }
+    thisdict[(me.stance, opponent.stance)] = ""
+    thisdict[len(thisdict) -1] = opponent.stance
 
     if game.has_monster(me.location):
     # if there's a monster at my location, choose the stance that damages that monster
         chosen_stance = get_winning_stance(game.get_monster(me.location).stance)
     else:
     # otherwise, pick a random stance
-        chosen_stance = predict_player_move()
+        # for the first three turns
+        if len(thisdict) == 0:
+            chosen_stance = "Rock"
+        elif len(thisdict) == 1:
+            chosen_stance = "Paper"
+        elif len(thisdict) == 2:
+            chosen_stance = "Scissors"
+        else:
+            # this part should be done for every turn / round after the first battle
+            if (me.stance, opponent.stance) in thisdict:
+                chosen_stance = get_winning_stance(thisdict[(me.stance, opponent.stance)])
+            if (me.stance, opponent.stance) not in thisdict:
+                chosen_stance = predict_player_move()
+
 
 
 # submit your decision for the turn (This function should be called exactly once per turn)
